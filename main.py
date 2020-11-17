@@ -1,6 +1,10 @@
-from indeed import extract_indeed_page, extract_indeed_jobs
+from indeed import get_jobs as get_indeed_jobs
+from so import get_jobs as get_so_jobs
+from save import save_to_file
 
-# max_indeed_page = extract_indeed_page()
 
-extract_indeed_jobs()
-# 이걸가지고 request를 page갯수만큼 만들것임
+##########################3function을 여러개로 쪼개서 indeed.py에 넣어놈
+so_jobs = get_so_jobs()
+indeed_jobs = get_indeed_jobs()
+jobs = so_jobs+indeed_jobs
+save_to_file(jobs)

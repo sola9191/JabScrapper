@@ -5,7 +5,7 @@ LIMIT = 50
 INDEED_URL = f"https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit={LIMIT}"
 
 #예를들어 'JAVA'라고 JOB을 검색시에 몇페이지가 나오는지 알아내는 METHOD
-def extract_indeed_page(): 
+def get_last_page(): 
   result = requests.get(INDEED_URL)
 
   # print(result.text) # response [200] 이라고 왔는데 ok라는 뜻임
@@ -34,31 +34,51 @@ def extract_indeed_page():
   #### 페이지중에서 가장큰 숫자 가져오는 작업
   max_page = pages[-1] #10
   #print(range(max_page)) # range(0, 10)로 출력됨
-
+  
   return max_page
 
 ## 작성한 코드를 function으로 처리해서 main에서 이 function 쓰는 방식으로 처리함
 
 # 마지막 페이지가 뭔지 확인하고 job list 뽑아내는 함수
-def extract_indeed_jobs():
+def extract_jobs(last_page):
   jobs = [] # 잡을 넣을 빈 리스트만들기
 
-  #for page in range(last_page):
-  result = requests.get(f"{INDEED_URL}&start={0*LIMIT}")
-  soup = BeautifulSoup(result.text, "html.parser")
-  results = soup.find_all("div", {"class":"jobsearch-SerpJobCard"})
+  for page in range(last_page):
+    print(f"Scrapping Indeed page: {page}")
+    result = requests.get(f"{INDEED_URL}&start={page*LIMIT}")
+    soup = BeautifulSoup(result.text, "html.parser")
+    results = soup.find_all("div", {"class":"jobsearch-SerpJobCard"})
  
-  for result in results:
-     # job title 가져오기
-    title = result.find("h2", {"class": "title"}).find("a")["title"]
+    for result in results:
+      jobs.append(extract_job(result))
+  
+  
+  return jobs
+
+
+def extract_job(html):
+   # job title 가져오기
+    title = html.find("h2", {"class": "title"}).find("a")["title"]
     # company name 가져오기
     # 어떤것은 링크가 걸려있고 어떤건 안걸려있음
-    company = result.find("span", {"class":"company"})
-    if company.find("a") is not None: # 링크가 있으면
-      company = company.find("a").string #a태그안의 글자출력
-    else: 
-      company = company.string  #span태그안의 글자출력
-    company = company.strip()
+    company = html.find("span", {"class":"company"})
+    if company:
+      if company.find("a") is not None: # 링크가 있으면
+        company = company.find("a").string #a태그안의 글자출력
+      else: 
+        company = company.string  #span태그안의 글자출력
+      company = company.strip()
+    else:
+      company = None
     # strip() 사용하면 빈칸을 지워준다
+
+    location = html.find("div", {"class":"recJobLoc"})["data-rc-loc"]
+    job_id = html.find("h2", {"class":"title"}).find("a")["href"]
     
+    return {"title": title, "company":company, "location":location, "link":f"https://kr.indeed.com{job_id}"}
+
+
+def get_jobs():
+  last_page = get_last_page()
+  jobs = extract_jobs(last_page)
   return jobs
