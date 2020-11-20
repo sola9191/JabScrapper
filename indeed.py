@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 LIMIT = 50
 INDEED_URL = f"https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit={LIMIT}"
 
-#예를들어 'JAVA'라고 JOB을 검색시에 몇페이지가 나오는지 알아내는 METHOD
+#예를들어 'JAVA'라고 JOB을 검색시에 몇페이지가 나오는지 알아내는 function
 def get_last_page(): 
   result = requests.get(INDEED_URL)
 
